@@ -1,0 +1,181 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*.
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+if (!requireNamespace("tidyverse", quietly = TRUE)) {
+  install.packages("tidyverse")
+}
+if (!requireNamespace("caret", quietly = TRUE)) {
+  install.packages("caret")
+}
+if (!requireNamespace("car", quietly = TRUE)) {
+  install.packages("car")
+}
+# Load necessary libraries
+library(tidyverse)  # Includes ggplot2, dplyr, and readr
+library(caret)      # For modeling and preprocessing data
+library(car)        # Contains functions for VIF (Variance Inflation Factor)
+
+
+# Plot settings, similar to sns.set()
+theme_set(theme_minimal())
+
+# Load data from CSV file
+data <- read_csv("car_dataset.csv")
+
+# Check the structure of the data
+str(data)
+
+# Display the first few rows of the data
+head(data)
+
+# Describe the data, similar to data.describe(include="all")
+summary(data)
+```
+
+Histrograms for each feature
+
+```{r}
+# Load necessary libraries
+library(tidyverse)  # Includes ggplot2, dplyr, and readr
+
+# Numeric columns (assuming they contain only numeric data)
+numeric_columns <- c("Price", "Mileage", "Year")  # Replace ... with actual column names
+
+# Non-numeric columns (assuming they contain at least one non-numeric value)
+non_numeric_columns <- c("Brand", "Body", "EngineV", "Engine Type", "Registration","Model")  # Replace ... with actual column names
+
+# Define the number of rows of plots for each type
+n_numeric <- length(numeric_columns)
+n_non_numeric <- length(non_numeric_columns)
+
+# Get the column names of the data
+all_columns <- colnames(data)
+
+# Function to get ylim for histograms
+get_hist_ylim <- function(column_data) {
+  hist_info <- hist(column_data, plot = FALSE)
+  return(c(3, max(hist_info$counts) * 1.2))  # Adding some space above the highest bar
+}
+
+# Function to get ylim for bar plots
+get_barplot_ylim <- function(column_data) {
+  bar_info <- table(column_data)
+  return(c(0, max(bar_info) * 1.2))  # Adding some space above the highest bar
+}
+
+# Plot histograms for numeric columns
+for (i in 1:n_numeric) {
+  column_data <- data[[numeric_columns[i]]]
+  hist(column_data, main = numeric_columns[i], xlab = "", col = "lightblue", border = "black", ylim = get_hist_ylim(column_data),ylab="Count")
+}
+
+# Plot bar plots for non-numeric columns
+for (i in 1:n_non_numeric) {
+  column_data <- data[[non_numeric_columns[i]]]
+  barplot(table(column_data), main = non_numeric_columns[i], xlab = "", col = "lightblue", border = "black", ylim = get_barplot_ylim(column_data), las=2,ylab="Count")
+}
+
+data
+```
+
+### At first glance we can see that Mlieage, EngineV, Year and Models have outliers.
+
+```{r}
+
+column_data <- data[["Mileage"]]
+hist(column_data, main = "Mileage", xlab = "", col = "lightblue", border = "black", ylim = get_hist_ylim(column_data),ylab="Count")
+#------------------------------------------------
+q <- quantile(data$Mileage, 0.99)
+data <- data[-which(data$Mileage > q), ]  # Remove rows where Mileage is greater than 99th percentile
+data <- data[order(data$Mileage), ]  # Reset index
+rownames(data) <- NULL  # Reset row names
+
+#------------------------------------------------
+column_data <- data[["Mileage"]]
+hist(column_data, main = "Mileage", xlab = "", col = "lightblue", border = "black", ylim = get_hist_ylim(column_data),ylab="Count")
+data  # 41 rows have been dropped
+
+```
+
+```{r}
+
+column_data <- data[["Year"]]
+hist(column_data, main = "Year", xlab = "", col = "lightblue", border = "black", ylim = get_hist_ylim(column_data),ylab="Count")
+#----------------------------
+# Calculate the 1st percentile for the 'Year' column
+q <- quantile(data$Year, 0.01)
+
+# Remove rows where 'Year' is less than the 1st percentile
+data <- data[data$Year >= q, ]
+data <- data[order(data$Year), ]  # Reset index
+rownames(data) <- NULL  # Reset row names
+
+#----------------------------
+# Display summary statistics
+column_data <- data[["Year"]]
+hist(column_data, main = "Year", xlab = "", col = "lightblue", border = "black", ylim = get_hist_ylim(column_data),ylab="Count")
+data
+```
+
+### over 2% of models apear only one, so those haven't any predictic power anyway
+
+```{r}
+# Create a histogram for the 'Model' column
+histogram <- data.frame(Model = data$Model)
+histogram$Count <- rep(1, nrow(data))
+
+# Group by 'Model' and count the occurrences
+histogram <- aggregate(Count ~ Model, data = histogram, FUN = length)
+q <- 50
+
+# Find models with a count less than the threshold 'q'
+models_to_drop <- histogram$Model[histogram$Count < q]
+
+# Get the number of models to drop
+length(models_to_drop)
+```
+
+# 275 models appear less than 50 times, that's why I dropped Model's column
+
+```{r}
+# Remove the 'Model' column from the data frame
+data <- data[, !names(data) %in% "Model"]
+
+```
+
+According to Google, the biggest EngineV which exist is equal to 8,3l, so I drop all values bigger than that value
+
+```{r}
+# Install and load the 'psych' package for more detailed summary statistics
+install.packages("psych")
+library(psych)
+
+# Assuming you have a dataframe named 'data'
+
+# Remove rows where 'EngineV' is greater than 8.2
+data <- data[data$EngineV <= 8.2, ]
+
+# Reset the row indices
+rownames(data) <- NULL
+
+# Display detailed descriptive statistics
+describe(data)
+
+```

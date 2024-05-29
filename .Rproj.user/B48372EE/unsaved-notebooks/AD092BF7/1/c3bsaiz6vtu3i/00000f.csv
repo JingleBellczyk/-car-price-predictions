@@ -1,0 +1,3 @@
+"0","# Remove the 'Model' column from the data frame"
+"0","data <- data[, !names(data) %in% ""Model""]"
+"0",""

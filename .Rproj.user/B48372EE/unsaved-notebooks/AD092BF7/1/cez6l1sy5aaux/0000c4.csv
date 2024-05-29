@@ -1,0 +1,6 @@
+"0",""
+"0","# Plot bar plots for non-numeric columns"
+"0","for (i in 1:n_non_numeric) {"
+"0","  column_data <- data[[non_numeric_columns[i]]]"
+"0","  barplot(table(column_data), main = non_numeric_columns[i], xlab = """", col = ""lightblue"", border = ""black"", ylim = get_barplot_ylim(column_data), las=2,ylab=""Count"")"
+"0","}"
