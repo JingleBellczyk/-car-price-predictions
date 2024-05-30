@@ -1,3 +1,0 @@
-"0",""
-"0","column_data <- data[[""Mileage""]]"
-"0","hist(column_data, main = ""Mileage"", xlab = """", col = ""lightblue"", border = ""black"", ylim = get_hist_ylim(column_data),ylab=""Count"")"
