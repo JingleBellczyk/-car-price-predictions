@@ -1,3 +1,11 @@
+---
+---
+---
+
+### Title: Car price prediction.
+
+### authors: Agata Belczyk, Jakub Ner
+
 ```{r warning=FALSE}
 if (!requireNamespace("tidyverse", quietly = TRUE)) {
   install.packages("tidyverse")
@@ -46,7 +54,7 @@ rownames(data) <- NULL
 data
 ```
 
-### Histrograms for each feature
+### Histograms for each feature
 
 ```{r}
 # Load necessary libraries
@@ -92,7 +100,7 @@ for (i in 1:n_non_numeric) {
 data
 ```
 
-### At first glance we can see that Mlieage, EngineV, Year and Models have outliers, so they don''t have predictice power. Therefore we remove rows where values are greater than 99th percentile.
+At first glance we can see that Mlieage, EngineV, Year and Models have outliers, so they don''t have predictice power. Therefore we remove rows where values are greater than 99th percentile.
 
 ```{r}
 
@@ -163,11 +171,7 @@ length(models_to_drop)
 
 ```
 
-```{r}
-
-```
-
-### 273 models appear less than 50 times, that's why I we dropped Model's column
+### 272 models appear less than 50 times, that's why I we dropped Model's column
 
 ```{r}
 # Remove the 'Model' column from the data frame
@@ -194,24 +198,21 @@ numeric_data <- data[sapply(data, is.numeric)]
 
 # Display detailed descriptive statistics for numeric columns only
 describe(numeric_data)
-data
 ```
 
 ```{r}
-print(beggining_data_length-nrow(data))
 # Calculate the difference
-difference <- 4345 - 3798
-print(difference) # 547
+print(beggining_data_length-nrow(data))
 
 # Division and expressing the result as a percentage
-percentage <- (difference / 4345) * 100
-print(percentage) # 12.6
+percentage <- ((beggining_data_length-nrow(data)) / nrow(data)) * 100
+print(percentage) 
 
 ```
 
-### *In total we have dropped 13% of rows - 547*
+### *In total we have dropped 12% of rows - 467*
 
-# Now when data is cleaned I can looks for in- and dependent variables
+# Now when data is cleaned We can looks for in- and dependent variables
 
 ```{r}
 if (!requireNamespace("dplyr", quietly = TRUE)) {
@@ -255,9 +256,9 @@ for (i in 1:length(plot_list)) {
 
 ```
 
-Firstly I made plots of each variable and Price but plots show much more when we log(Price).
+### Firstly we made plots of each variable and Price, but plots show much more when we log(Price).
 
-Plot of Model and log(Price) doesn't show any pattern, but other plots with continues variables looks promising.
+### Plot of Model and log(Price) doesn't show any pattern, but other plots with continues variables looks promising.
 
 ```{r}
 # Selecting independent continuous variables
@@ -272,7 +273,7 @@ print(continues_independent)
 
 ```
 
-Changing categorical features to numerical.
+### Changing categorical features to numerical.
 
 ```{r warning=FALSE}
 # Install and load the 'recipes' package if not already installed
@@ -296,7 +297,7 @@ head(x_with_dummies, 3)
 
 ```
 
-## time for standarization
+### Standarization
 
 ```{r}
 # Install and load the 'recipes' package if not already installed
@@ -320,7 +321,7 @@ head(scaled_inputs, 3)
 
 ```
 
-setting seed
+### Setting seed
 
 ```{r}
 # Install and load the 'caret' package if not already installed
@@ -339,10 +340,6 @@ x_test <- scaled_inputs[-split, ]
 y_train <- y[split]
 y_test <- y[-split]
 
-```
-
-```{r}
-data
 ```
 
 ```{r warning=FALSE}
@@ -366,28 +363,6 @@ rownames(df_pf) <- NULL
 
 # Display first few rows
 df_pf
-
-```
-
-```{r}
-# Fit the linear regression model
-reg <- lm(y_train ~ ., data = x_train)
-
-# Calculate R^2
-r2 <- summary(reg)$r.squared
-
-# Number of observations
-n <- nrow(x_train)
-
-# Number of predictors
-p <- ncol(x_train)
-
-# Calculate adjusted R^2
-adjusted_r2 <- 1 - (1 - r2) * (n - 1) / (n - p - 1)
-
-# Print R^2 and adjusted R^2
-cat("R^2 and Adjusted R^2: ", round(r2, 3), round(adjusted_r2, 3), "\n")
-
 ```
 
 ```{r warning=FALSE}
@@ -396,8 +371,6 @@ if (!require(ggplot2)) {
   install.packages("ggplot2")
   library(ggplot2)
 }
-
-# Assuming you have already fitted a model 'reg' and have test data 'x_test' and 'y_test'
 
 # Create predictions
 predicted_values <- predict(reg, newdata = x_test)
@@ -413,6 +386,8 @@ ggplot(plot_data, aes(x = Predicted, y = Actual)) +
   theme_minimal()
 
 ```
+
+### This is a regression model. We can see that predicted values overlaps with real values. In the next steps we will see how well model works.
 
 ```{r warning=FALSE}
 # Install and load necessary packages if not already installed
@@ -447,7 +422,9 @@ ggplot(plot_data, aes(x = Residuals)) +
 
 ```
 
-```{r}
+### A p-value close to 0 (typically less than 0.05) indicates that the null hypothesis, which posits that there is no effect or relationship, can be rejected. This suggests a significant relationship between the predictor and the response variable. Essentially, low p-values imply that the predictor variables are making a meaningful contribution to the model by explaining the variance in the response variable:
+
+```{r warning=FALSE}
 # Assuming you have already fitted a model 'reg' and have test data 'x_test' and 'y_test'
 
 # Create predictions
@@ -470,14 +447,10 @@ p_values
 
 ```
 
-A p-value close to 0 (typically less than 0.05) indicates that the null hypothesis, which posits that there is no effect or relationship, can be rejected. This suggests a significant relationship between the predictor and the response variable. Essentially, low p-values imply that the predictor variables are making a meaningful contribution to the model by explaining the variance in the response variable.
+### We load libraries
 
-```{r}
+```{r warning=FALSE}
 # Install and load necessary packages
-if (!require(caret)) {
-  install.packages("caret")
-  library(caret)
-}
 if (!require(e1071)) {
   install.packages("e1071")
   library(e1071)
@@ -495,6 +468,24 @@ if (!require(ggplot2)) {
   library(ggplot2)
 }
 ```
+
+This code aims to evaluate the performance of various regression models on a given dataset. The models included in this evaluation are Linear Regression, Generalized Linear Model (Polynomial Regression), Support Vector Regression (SVR), Random Forest, and XGBoost.
+
+### **Generalized Linear Model (Polynomial Regression):**
+
+Polynomial features (squared terms) are generated for the training and test datasets. A linear model is trained using these features, and its performance is evaluated using MSE on the test data.
+
+### **Support Vector Regression (SVR):**
+
+An SVR model with a radial basis function (RBF) kernel is trained on the training data. The model's accuracy is assessed by computing the MSE on the test data.
+
+### **Random Forest:**
+
+A Random Forest model with 100 decision trees is trained on the training data. Its performance is evaluated by calculating the MSE on the test data.
+
+### **XGBoost:**
+
+The datasets are converted to DMatrix format for XGBoost. An XGBoost model is trained with specific parameters, and its performance is assessed using MSE on the test data.
 
 ```{r warning=FALSE}
 
@@ -525,17 +516,17 @@ model_GLM <- lm(y_train ~ ., data = data.frame(gen_features_train, y_train))
 
 gen_features_test <- poly_features(data.frame(x_test), degree = 2)
 MSE_GLM <- mean((predict(model_GLM, data.frame(gen_features_test)) - y_test)^2)
-cat(sprintf('Błąd średniokwadratowy modelu GLM: %.3f\n', MSE_GLM))
+cat(sprintf('Mean squared error for model GLM: %.3f\n', MSE_GLM))
 
 # Support Vector Regression
 model_svr <- svm(y_train ~ ., data = data.frame(x_train, y_train), kernel = 'radial', cost = 3)
 MSE_SVR <- mean((predict(model_svr, data.frame(x_test)) - y_test)^2)
-cat(sprintf('Błąd średniokwadratowy modelu SVR: %.3f\n', MSE_SVR))
+cat(sprintf('Mean squared error for model  SVR: %.3f\n', MSE_SVR))
 
 # Random Forest
 model_rf <- randomForest(y_train ~ ., data = data.frame(x_train, y_train), ntree = 100, random_state = 42)
 MSE_RF <- mean((predict(model_rf, data.frame(x_test)) - y_test)^2)
-cat(sprintf('Błąd średniokwadratowy modelu RF: %.3f\n', MSE_RF))
+cat(sprintf('Mean squared error for model RF: %.3f\n', MSE_RF))
 
 # XGBoost
 D_train <- xgb.DMatrix(data = as.matrix(x_train), label = y_train)
@@ -543,7 +534,7 @@ D_test <- xgb.DMatrix(data = as.matrix(x_test), label = y_test)
 param <- list(max_depth = 30, eta = 1, objective = "reg:squarederror")
 model_xgb <- xgb.train(param, D_train, nrounds = 2)
 MSE_XGB <- mean((predict(model_xgb, D_test) - y_test)^2)
-cat(sprintf('Błąd średniokwadratowy modelu XGB: %.3f\n', MSE_XGB))
+cat(sprintf('Mean squared error for model XGB: %.3f\n', MSE_XGB))
 
 # Visualization for each model
 # Function to create scatter plot
@@ -584,17 +575,7 @@ cat(sprintf("R^2 and Adjusted R^2 Linear Regression: %.3f, %.3f\n", r2, adjusted
 
 ```
 
--   R-squared (R²):
-
-    -   **Value**: 0.883
-
-    -   **Meaning**: R-squared is the proportion of the variance in the dependent variable that is predictable from the independent variables. In this case, an R² value of 0.883 means that approximately 88.3% of the variability in the response variable can be explained by the linear model. This high R² value suggests that the model has a strong explanatory power and fits the data well.
-
-    Adjusted R-squared:
-
-    -   **Value**: 0.882
-
-    -   **Meaning**: Adjusted R-squared adjusts the R² value for the number of predictors (gives penalty fo high number of features) in the model. It provides a more accurate measure of the model's explanatory power, especially when multiple predictors are involved. An adjusted R² value of 0.882, which is very close to the R² value, indicates that the model’s explanatory power is robust and not inflated by the number of predictors. It suggests that the model generalizes well to new data.
+-   The Linear Regression model shows an R-squared value of 0.883 and an adjusted R-squared value of 0.882. These values indicate that the model explains approximately 88.3% of the variance in the dependent variable. The small difference between the R-squared and adjusted R-squared values suggests that the model does not overfit significantly, maintaining a balance between complexity and predictive power. This result demonstrates that even a simple linear model can capture a substantial portion of the data's variability. However, it may not capture non-linear relationships as effectively as the polynomial regression model.
 
     ```{r}
     # Fit the Generalized Linear Model (Polynomial Regression)
@@ -611,8 +592,4 @@ cat(sprintf("R^2 and Adjusted R^2 Linear Regression: %.3f, %.3f\n", r2, adjusted
 
     ```
 
--   **Adjusted R-squared**:
-
-    -   **Value**: 0.893
-
-    -   **Meaning**: Adjusted R-squared is a modified version of R-squared that adjusts for the number of predictors in the model. It provides a more accurate measure of the model's goodness of fit, especially when comparing models with different numbers of predictors
+    The polynomial regression model with manually created squared features shows high R-squared (0.894) and adjusted R-squared (0.893) values. This indicates that the model effectively captures the variance in the data, suggesting a **good fit and strong predictive power**. The small difference between R-squared and adjusted R-squared implies minimal overfitting. The model's performance highlights the benefit of adding polynomial terms to capture non-linear relationships in the data.
